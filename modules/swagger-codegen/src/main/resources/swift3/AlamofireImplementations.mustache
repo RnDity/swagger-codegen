@@ -7,6 +7,7 @@
 import Alamofire
 
 class AlamofireRequestBuilderFactory: RequestBuilderFactory {
+
     func getBuilder<T>() -> RequestBuilder<T>.Type {
         return AlamofireRequestBuilder<T>.self
     }
