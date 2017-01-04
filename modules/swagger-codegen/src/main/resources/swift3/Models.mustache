@@ -170,7 +170,7 @@ class Decoders {
 {{/isEnum}}
 {{^isEnum}}
 {{#allVars.isEmpty}}
-            if let source = source as? {{dataType}} {
+            if let source = source as? {{classname}} {
                 return source
             }
             fatalError("Source \(source) is not convertible to typealias {{classname}}: Maybe swagger file is insufficient")
