@@ -5,6 +5,7 @@
 //
 
 import Alamofire
+import Timberjack
 
 class AlamofireRequestBuilderFactory: RequestBuilderFactory {
 
@@ -26,7 +27,7 @@ open class AlamofireRequestBuilder<T>: RequestBuilder<T> {
      configuration.
      */
     open func createSessionManager() -> Alamofire.SessionManager {
-        let configuration = URLSessionConfiguration.default
+        let configuration = Timberjack.defaultSessionConfiguration()
         configuration.httpAdditionalHeaders = buildHeaders()
         return Alamofire.SessionManager(configuration: configuration)
     }
