@@ -6,15 +6,22 @@
 
 import Foundation
 
+public protocol APICustomHeadersProvider {
+    var customHeaders: [String: String]? { get }
+}
+
 open class APIBase {
     open var basePath = "{{basePath}}"
-    let credential: URLCredential?
-    let customHeaders: [String:String]?
+    var credential: URLCredential?
+    var customHeaders: [String:String]? {
+        return customHeadersProvider?.customHeaders
+    }
+    let customHeadersProvider: APICustomHeadersProvider?
     let requestBuilderFactory: RequestBuilderFactory
 
-    public init(credential: URLCredential? = nil, customHeaders: [String:String]? = nil) {
-        self.credential = credential
-        self.customHeaders = customHeaders
+    public init(basePath: String, customHeadersProvider: APICustomHeadersProvider?) {
+        self.basePath = basePath
+        self.customHeadersProvider = customHeadersProvider
         requestBuilderFactory = AlamofireRequestBuilderFactory()
     }
 
