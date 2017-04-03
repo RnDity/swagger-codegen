@@ -94,7 +94,7 @@ open class AlamofireRequestBuilder<T>: RequestBuilder<T> {
                     }
                     self.processRequest(request: upload, managerId, completion)
                 case .failure(let encodingError):
-                    completion(nil, ErrorResponse.Error(415, nil, encodingError))
+                    completion(nil, ErrorResponse(statusCode: 415, error: encodingError))
                 }
             })
         } else {
@@ -124,10 +124,8 @@ open class AlamofireRequestBuilder<T>: RequestBuilder<T> {
                 cleanupRequest()
 
                 if stringResponse.result.isFailure {
-                    completion(
-                        nil,
-                        ErrorResponse.Error(stringResponse.response?.statusCode ?? 500, stringResponse.data, stringResponse.result.error as Error!)
-                    )
+                    let errorResponse = makeErrorResponse(withStatusCode: stringResponse.response?.statusCode, data: stringResponse.data, error: stringResponse.result.error!, response: stringResponse.response)
+                    completion(nil, errorResponse)
                     return
                 }
 
@@ -144,10 +142,8 @@ open class AlamofireRequestBuilder<T>: RequestBuilder<T> {
                 cleanupRequest()
 
                 if voidResponse.result.isFailure {
-                    completion(
-                        nil,
-                        ErrorResponse.Error(voidResponse.response?.statusCode ?? 500, voidResponse.data, voidResponse.result.error!)
-                    )
+                    let errorResponse = makeErrorResponse(withStatusCode: voidResponse.response?.statusCode, data: voidResponse.data, error: voidResponse.result.error!, response: voidResponse.response)
+                    completion(nil, errorResponse)
                     return
                 }
 
@@ -163,10 +159,8 @@ open class AlamofireRequestBuilder<T>: RequestBuilder<T> {
                 cleanupRequest()
 
                 if (dataResponse.result.isFailure) {
-                    completion(
-                        nil,
-                        ErrorResponse.Error(dataResponse.response?.statusCode ?? 500, dataResponse.data, dataResponse.result.error!)
-                    )
+                    let errorResponse = makeErrorResponse(withStatusCode: dataResponse.response?.statusCode, data: dataResponse.data, error: dataResponse.result.error!, response: dataResponse.response)
+                    completion(nil, errorResponse)
                     return
                 }
 
@@ -183,7 +177,8 @@ open class AlamofireRequestBuilder<T>: RequestBuilder<T> {
                 cleanupRequest()
 
                 if response.result.isFailure {
-                    completion(nil, ErrorResponse.Error(response.response?.statusCode ?? 500, response.data, response.result.error!))
+                    let errorResponse = makeErrorResponse(withStatusCode: response.response?.statusCode, data: response.data, error: response.result.error!, response: response.response)
+                    completion(nil, errorResponse)
                     return
                 }
 
@@ -209,7 +204,7 @@ open class AlamofireRequestBuilder<T>: RequestBuilder<T> {
                     return
                 }
 
-                completion(nil, ErrorResponse.Error(500, nil, NSError(domain: "localhost", code: 500, userInfo: ["reason": "unreacheable code"])))
+                completion(nil, ErrorResponse(statusCode: 500, error: NSError(domain: "localhost", code: 500, userInfo: ["reason": "unreacheable code"])))
             }
         }
     }
@@ -221,4 +216,17 @@ open class AlamofireRequestBuilder<T>: RequestBuilder<T> {
         }
         return httpHeaders
     }
+}
+
+fileprivate func makeErrorResponse(withStatusCode statusCode: Int?, data: Data?, error: Error, response: HTTPURLResponse?) -> ErrorResponse {
+    var errorResponse = ErrorResponse(statusCode: statusCode ?? 0, data: data, error: error)
+    if statusCode == 400 {
+        let result = Request.serializeResponseJSON(options: .allowFragments, response: response, data: data, error: nil)
+        if case let Result.success(json) = result {
+            let body = Decoders.decode(clazz: ValidationError.self, source: json as AnyObject)
+            errorResponse.validationErrorMessage = body.message
+            errorResponse.validationErrorDetails = body.details
+        }
+    }
+    return errorResponse
 }

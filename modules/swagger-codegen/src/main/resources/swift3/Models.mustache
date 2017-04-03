@@ -10,8 +10,20 @@ protocol JSONEncodable {
     func encodeToJSON() -> Any
 }
 
-public enum ErrorResponse : Error {
-    case Error(Int, Data?, Error)
+public struct ErrorResponse: Error {
+    public internal(set) var statusCode: Int
+    public internal(set) var data: Data?
+    public internal(set) var error: Error
+    public internal(set) var validationErrorMessage: String?
+    public internal(set) var validationErrorDetails: [String: String]?
+
+    init(statusCode: Int, data: Data? = nil, error: Error, validationErrorMessage: String? = nil, validationErrorDetails: [String: String]? = nil) {
+        self.statusCode = statusCode
+        self.data = data
+        self.error = error
+        self.validationErrorMessage = validationErrorMessage
+        self.validationErrorDetails = validationErrorDetails
+    }
 }
 
 open class Response<T> {
