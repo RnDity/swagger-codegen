@@ -103,8 +103,37 @@ open class AlamofireRequestBuilder<T>: RequestBuilder<T> {
                 onProgressReady(request.progress)
             }
             processRequest(request: request, managerId, completion)
-        }
 
+            print("\n========================")
+            
+            if isBody {
+                printJSONBody(forRequest: request.request)
+            }
+        }
+    }
+
+    private func printJSONBody(forRequest request: URLRequest?) {
+        guard let request = request, let data = request.httpBody else {
+            return
+        }
+        
+        if let url = request.url?.absoluteString, let method = request.httpMethod {
+            print("Request: \(method) \(url)")
+        }
+        
+        do {
+            let json = try JSONSerialization.jsonObject(with: data, options: .mutableContainers)
+            let pretty = try JSONSerialization.data(withJSONObject: json, options: .prettyPrinted)
+            
+            if let string = NSString(data: pretty, encoding: String.Encoding.utf8.rawValue) {
+                print("BODY: \(string)")
+            }
+        }
+        catch {
+            if let string = NSString(data: data, encoding: String.Encoding.utf8.rawValue) {
+                print("Data: \(string)")
+            }
+        }
     }
 
     private func processRequest(request: DataRequest, _ managerId: String, _ completion: @escaping (_ response: Response<T>?, _ error: Error?) -> Void) {
