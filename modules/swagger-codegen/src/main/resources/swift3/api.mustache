@@ -108,7 +108,7 @@ open class {{classname}}: APIBase {
         path = path.replacingOccurrences(of: "{{=<% %>=}}{<%paramName%>}<%={{ }}=%>", with: "\({{paramName}}{{#isEnum}}{{#isContainer}}{{{dataType}}}{{/isContainer}}{{^isContainer}}.rawValue{{/isContainer}}{{/isEnum}}{{#isDate}}.encodeDateToJSON(){{/isDate}})", options: .literal, range: nil){{/pathParams}}
         let URLString = basePath + path
         {{#bodyParam}}
-        let parameters = {{paramName}}{{^required}}?{{/required}}.encodeToJSON() as? [String:AnyObject]{{/bodyParam}}{{^bodyParam}}
+        let parameters = {{paramName}}{{^required}}?{{/required}}.encodeToJSON(){{/bodyParam}}{{^bodyParam}}
         let nillableParameters: [String:Any?] = {{^queryParams}}{{^formParams}}[:]{{/formParams}}{{#formParams}}{{^secondaryParam}}[{{/secondaryParam}}
             {{> _param}}{{#hasMore}},{{/hasMore}}{{^hasMore}}
         ]{{/hasMore}}{{/formParams}}{{/queryParams}}{{#queryParams}}{{^secondaryParam}}[{{/secondaryParam}}

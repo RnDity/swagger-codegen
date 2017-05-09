@@ -18,7 +18,7 @@ class AlamofireRequestBuilderFactory: RequestBuilderFactory {
 private var managerStore: [String: Alamofire.SessionManager] = [:]
 
 open class AlamofireRequestBuilder<T>: RequestBuilder<T> {
-    required public init(method: String, URLString: String, parameters: [String : Any]?, isBody: Bool) {
+    required public init(method: String, URLString: String, parameters: Any?, isBody: Bool) {
         super.init(method: method, URLString: URLString, parameters: parameters, isBody: isBody)
     }
 
@@ -47,7 +47,7 @@ open class AlamofireRequestBuilder<T>: RequestBuilder<T> {
      May be overridden by a subclass if you want to control the request
      configuration (e.g. to override the cache policy).
      */
-    open func makeRequest(manager: SessionManager, method: HTTPMethod, encoding: ParameterEncoding) -> DataRequest {
+    open func makeRequest(manager: SessionManager, method: HTTPMethod, parameters: Parameters?, encoding: ParameterEncoding) -> DataRequest {
         return manager.request(URLString, method: method, parameters: parameters, encoding: encoding)
     }
 
@@ -57,15 +57,27 @@ open class AlamofireRequestBuilder<T>: RequestBuilder<T> {
         let manager = createSessionManager()
         managerStore[managerId] = manager
 
-        let encoding:ParameterEncoding = isBody ? JSONEncoding() : URLEncoding()
-
         let xMethod = Alamofire.HTTPMethod(rawValue: method)
-        let fileKeys = parameters == nil ? [] : parameters!.filter { $1 is NSURL }
-                                                           .map { $0.0 }
+        
+        var encoding:ParameterEncoding = URLEncoding()
+        var fileKeys: [String]?
+        var requestParameters: Parameters?
+        
+        if let parametersDictionary = parameters as? [String:Any] {
+            fileKeys = parametersDictionary.filter { $1 is NSURL }.map { $0.0 }
+            requestParameters = parametersDictionary
+            
+            if isBody {
+                encoding = JSONEncoding()
+            }
+        } else if let parametersArray = parameters as? [Any] {
+            requestParameters = parametersArray.asParameters()
+            encoding = ArrayJSONEncoding()
+        }
 
-        if fileKeys.count > 0 {
+        if fileKeys?.count ?? 0 > 0 {
             manager.upload(multipartFormData: { mpForm in
-                for (k, v) in self.parameters! {
+                for (k, v) in self.parameters as! [String:Any] {
                     switch v {
                     case let fileURL as URL:
                         if let mimeType = self.contentTypeForFormPart(fileURL: fileURL) {
@@ -98,7 +110,7 @@ open class AlamofireRequestBuilder<T>: RequestBuilder<T> {
                 }
             })
         } else {
-            let request = makeRequest(manager: manager, method: xMethod!, encoding: encoding)
+            let request = makeRequest(manager: manager, method: xMethod!, parameters: requestParameters, encoding: encoding)
             if let onProgressReady = self.onProgressReady {
                 onProgressReady(request.progress)
             }
@@ -258,4 +270,38 @@ fileprivate func makeErrorResponse(withStatusCode statusCode: Int?, data: Data?,
         }
     }
     return errorResponse
+}
+
+fileprivate let arrayParametersKey = "arrayParametersKey"
+
+extension Array {
+    func asParameters() -> Parameters {
+        return [arrayParametersKey: self]
+    }
+}
+
+public struct ArrayJSONEncoding: ParameterEncoding {
+    public func encode(_ urlRequest: URLRequestConvertible, with parameters: Parameters?) throws -> URLRequest {
+        var urlRequest = try urlRequest.asURLRequest()
+        
+        guard let parameters = parameters,
+            let array = parameters[arrayParametersKey] else {
+                return urlRequest
+        }
+        
+        do {
+            let data = try JSONSerialization.data(withJSONObject: array, options: [])
+            
+            if urlRequest.value(forHTTPHeaderField: "Content-Type") == nil {
+                urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            }
+            
+            urlRequest.httpBody = data
+            
+        } catch {
+            throw AFError.parameterEncodingFailed(reason: .jsonEncodingFailed(error: error))
+        }
+        
+        return urlRequest
+    }
 }
