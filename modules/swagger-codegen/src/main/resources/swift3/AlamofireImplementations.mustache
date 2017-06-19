@@ -29,6 +29,9 @@ open class AlamofireRequestBuilder<T>: RequestBuilder<T> {
     open func createSessionManager() -> Alamofire.SessionManager {
         let configuration = Timberjack.defaultSessionConfiguration()
         configuration.httpAdditionalHeaders = buildHeaders()
+        if let requestTimeout = requestTimeout {
+            configuration.timeoutIntervalForRequest = requestTimeout
+        }
         return Alamofire.SessionManager(configuration: configuration)
     }
 

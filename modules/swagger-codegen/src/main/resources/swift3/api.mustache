@@ -123,6 +123,9 @@ open class {{classname}}: APIBase {
         if let customHeaders = customHeaders {
             requestBuilder.addHeaders(customHeaders)
         }
+        if let customRequestTimeout = customRequestTimeout {
+            requestBuilder.requestTimeout = customRequestTimeout
+        }
         if let credential = credential {
             let _ = requestBuilder.addCredential(credential: credential)
         }

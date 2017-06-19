@@ -6,22 +6,26 @@
 
 import Foundation
 
-public protocol APICustomHeadersProvider {
+public protocol APICustomConfigurationProvider {
     var customHeaders: [String: String]? { get }
+    var customRequestTimeout: TimeInterval? { get }
 }
 
 open class APIBase {
     open var basePath = "{{basePath}}"
     var credential: URLCredential?
     var customHeaders: [String:String]? {
-        return customHeadersProvider?.customHeaders
+        return customConfigurationProvider?.customHeaders
     }
-    let customHeadersProvider: APICustomHeadersProvider?
+    var customRequestTimeout: TimeInterval? {
+        return customConfigurationProvider?.customRequestTimeout
+    }
+    let customConfigurationProvider: APICustomConfigurationProvider?
     let requestBuilderFactory: RequestBuilderFactory
 
-    public init(basePath: String, customHeadersProvider: APICustomHeadersProvider?) {
+    public init(basePath: String, customConfigurationProvider: APICustomConfigurationProvider?) {
         self.basePath = basePath
-        self.customHeadersProvider = customHeadersProvider
+        self.customConfigurationProvider = customConfigurationProvider
         requestBuilderFactory = AlamofireRequestBuilderFactory()
     }
 
@@ -47,6 +51,7 @@ open class RequestBuilder<T> {
     let isBody: Bool
     let method: String
     let URLString: String
+    var requestTimeout: TimeInterval?
 
     /// Optional block to obtain a reference to the request's progress instance when available.
     public var onProgressReady: ((Progress) -> ())?
