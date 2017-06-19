@@ -62,7 +62,7 @@ open class AlamofireRequestBuilder<T>: RequestBuilder<T> {
 
         let xMethod = Alamofire.HTTPMethod(rawValue: method)
         
-        var encoding:ParameterEncoding = URLEncoding()
+        var encoding:ParameterEncoding = CustomURLEncoding()
         var fileKeys: [String]?
         var requestParameters: Parameters?
         
@@ -306,5 +306,33 @@ public struct ArrayJSONEncoding: ParameterEncoding {
         }
         
         return urlRequest
+    }
+}
+
+struct CustomURLEncoding: ParameterEncoding {
+    let defaultUrlEncoding = URLEncoding()
+
+    func encode(_ urlRequest: URLRequestConvertible, with parameters: Parameters?) throws -> URLRequest {
+        var request = try defaultUrlEncoding.encode(urlRequest, with: parameters)
+
+        // for array parameteres default URLEncoding encode these parameters with empty square brackets -> e.g. price[]=20
+        // this form is usually not supported by server so we remove the brackets
+        let newUrlString = removeEmptySquareBracketsFromQuery(forUrlString: request.url!.absoluteString)
+        request.url = URL(string: newUrlString)
+        return request
+    }
+
+    private func removeEmptySquareBracketsFromQuery(forUrlString urlString: String) -> String {
+        var components = URLComponents(string: urlString)!
+
+        let queryRange = components.rangeOfQuery
+
+        var newUrlString = components.string!
+
+        if let range = queryRange, let originalQuery = components.query {
+            newUrlString.replaceSubrange(range, with: originalQuery.replacingOccurrences(of: "[]=", with: "="))
+        }
+
+        return newUrlString
     }
 }
