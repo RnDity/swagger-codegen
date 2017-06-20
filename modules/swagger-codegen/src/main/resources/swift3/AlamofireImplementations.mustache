@@ -333,6 +333,6 @@ struct CustomURLEncoding: ParameterEncoding {
             newUrlString.replaceSubrange(range, with: originalQuery.replacingOccurrences(of: "[]=", with: "="))
         }
 
-        return newUrlString
+        return newUrlString.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlQueryAllowed)!
     }
 }
