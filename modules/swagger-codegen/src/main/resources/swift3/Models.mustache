@@ -16,13 +16,15 @@ public struct ErrorResponse: Error {
     public internal(set) var error: Error
     public internal(set) var validationErrorMessage: String?
     public internal(set) var validationErrorDetails: [String: String]?
+    public internal(set) var validationErrorCode: Int32?
 
-    init(statusCode: Int, data: Data? = nil, error: Error, validationErrorMessage: String? = nil, validationErrorDetails: [String: String]? = nil) {
+    init(statusCode: Int, data: Data? = nil, error: Error, validationErrorMessage: String? = nil, validationErrorDetails: [String: String]? = nil, validationErrorCode: Int32? = nil) {
         self.statusCode = statusCode
         self.data = data
         self.error = error
         self.validationErrorMessage = validationErrorMessage
         self.validationErrorDetails = validationErrorDetails
+        self.validationErrorCode = validationErrorCode
     }
 }
 

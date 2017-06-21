@@ -270,6 +270,7 @@ fileprivate func makeErrorResponse(withStatusCode statusCode: Int?, data: Data?,
             let body = Decoders.decode(clazz: ValidationError.self, source: json as AnyObject)
             errorResponse.validationErrorMessage = body.message
             errorResponse.validationErrorDetails = body.details
+            errorResponse.validationErrorCode = body.code
         }
     }
     return errorResponse
