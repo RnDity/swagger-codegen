@@ -54,7 +54,7 @@ open class RequestBuilder<T> {
     var requestTimeout: TimeInterval?
 
     /// Optional block to obtain a reference to the request's progress instance when available.
-    public var onProgressReady: ((Progress) -> ())?
+    public var onProgressReady: ((Foundation.Progress) -> ())?
 
     required public init(method: String, URLString: String, parameters: Any?, isBody: Bool) {
         self.method = method

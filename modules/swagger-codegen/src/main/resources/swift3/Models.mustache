@@ -200,7 +200,7 @@ class Decoders {
             {{/discriminator}}
 
             {{#unwrapRequired}}
-            let instance = {{classname}}({{#requiredVars}}{{^-first}}, {{/-first}}{{#isEnum}}{{name}}: {{classname}}.{{datatypeWithEnum}}(rawValue: (sourceDictionary["{{baseName}}"] as! {{datatype}}))! {{/isEnum}}{{^isEnum}}{{name}}: Decoders.decode(clazz: {{{baseType}}}.self, source: sourceDictionary["{{baseName}}"]! as AnyObject){{/isEnum}}{{/requiredVars}})
+            let instance = {{classname}}({{#requiredVars}}{{^-first}}, {{/-first}}{{#isEnum}}{{^isListContainer}}{{name}}: {{classname}}.{{datatypeWithEnum}}(rawValue: (sourceDictionary["{{baseName}}"] as! {{datatype}}))!{{/isListContainer}}{{#isListContainer}}{{name}}: (sourceDictionary["{{baseName}}"] as! {{datatype}}).map ({ {{classname}}.{{enumName}}(rawValue: $0)! }){{/isListContainer}}{{/isEnum}}{{^isEnum}}{{name}}: Decoders.decode(clazz: {{{baseType}}}.self, source: sourceDictionary["{{baseName}}"]! as AnyObject){{/isEnum}}{{/requiredVars}})
             {{#optionalVars}}{{#isEnum}}
             if let {{name}} = sourceDictionary["{{baseName}}"] as? {{datatype}} { {{^isContainer}}
                 instance.{{name}} = {{classname}}.{{datatypeWithEnum}}(rawValue: ({{name}})){{/isContainer}}{{#isListContainer}}

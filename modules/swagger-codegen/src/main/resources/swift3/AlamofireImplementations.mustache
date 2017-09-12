@@ -267,9 +267,8 @@ fileprivate func makeErrorResponse(withStatusCode statusCode: Int?, data: Data?,
     if statusCode == 400 {
         let result = Request.serializeResponseJSON(options: .allowFragments, response: response, data: data, error: nil)
         if case let Result.success(json) = result {
-            let body = Decoders.decode(clazz: ValidationError.self, source: json as AnyObject)
+            let body = Decoders.decode(clazz: ValidationErrorResponse.self, source: json as AnyObject)
             errorResponse.validationErrorMessage = body.message
-            errorResponse.validationErrorDetails = body.details
             errorResponse.validationErrorCode = body.code
         }
     }
