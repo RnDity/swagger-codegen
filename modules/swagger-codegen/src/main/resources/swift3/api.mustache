@@ -70,8 +70,8 @@ open class {{classname}}: APIBase {
      - returns: Observable<{{#returnType}}{{{returnType}}}{{/returnType}}{{^returnType}}Void{{/returnType}}>
      */
     open func {{operationId}}({{#allParams}}{{paramName}}: {{#isEnum}}{{#isContainer}}{{{dataType}}}{{/isContainer}}{{^isContainer}}{{{datatypeWithEnum}}}_{{operationId}}{{/isContainer}}{{/isEnum}}{{^isEnum}}{{{dataType}}}{{/isEnum}}{{^required}}? = nil{{/required}}{{#hasMore}}, {{/hasMore}}{{/allParams}}) -> Observable<{{#returnType}}{{{returnType}}}{{/returnType}}{{^returnType}}Void{{/returnType}}> {
-        return Observable.create { observer -> Disposable in
-            {{operationId}}({{#allParams}}{{paramName}}: {{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}}) { {{#returnType}}data, {{/returnType}}error in
+        return Observable.create { [weak self] observer -> Disposable in
+                self?.{{operationId}}({{#allParams}}{{paramName}}: {{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}}) { {{#returnType}}data, {{/returnType}}error in
                 if let error = error {
                     observer.on(.error(error as Error))
                 } else {
@@ -79,7 +79,7 @@ open class {{classname}}: APIBase {
                 }
                 observer.on(.completed)
             }
-            return NopDisposable.instance
+            return Disposables.create()
         }
     }
 {{/useRxSwift}}
